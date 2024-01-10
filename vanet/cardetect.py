@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 
 # Initialize video capture from a webcam or video file
 cap = cv2.VideoCapture('vi.mp4')  # Use 0 for default webcam, or provide a video file path
@@ -9,6 +10,9 @@ fgbg = cv2.createBackgroundSubtractorMOG2()
 
 # Parameters for collision detection
 min_collision_distance = 100  # Adjust as needed
+collision_warning_duration = 3  # Duration to display the collision warning in seconds
+
+collision_detected_time = 0  # Variable to track the time of the last collision detection
 
 while True:
     ret, frame = cap.read()
@@ -43,7 +47,7 @@ while True:
                 closest_pair = (i, j)
                 collision_detected = True
 
-    # Show the "Collision Warning!" message only if a collision is detected
+    # Show the "Collision Warning!" message only when a collision is detected
     if collision_detected:
         cv2.putText(frame, "Collision Warning!", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         # Optionally, you can highlight the closest pair of objects by drawing rectangles
@@ -53,8 +57,15 @@ while True:
         cv2.rectangle(frame, (x1, y1), (x1 + w1, y1 + h1), (0, 255, 0), 2)
         cv2.rectangle(frame, (x2, y2), (x2 + w2, y2 + h2), (0, 255, 0), 2)
 
+        # Update the collision_detected_time
+        collision_detected_time = time.time()
+
     # Display the frame
     cv2.imshow('Collision Detection', frame)
+
+    # Check if the collision warning duration has passed, and reset the warning
+    if time.time() - collision_detected_time > collision_warning_duration:
+        collision_detected_time = 0
 
     if cv2.waitKey(30) & 0xFF == 27:  # Press Esc to exit
         break
